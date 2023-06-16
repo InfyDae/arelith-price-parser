@@ -27,8 +27,7 @@ SHOP_OWNER_IDENT = "'s shop''"
 SHOP_ITEM_INDENT = "Do you want to buy the article "
 
 # Metadata folder locations
-METADATA_MERCHANT = 'metadata\merchant_list.json'
-METADATA_MERCHANT_LOCATION = 'metadata\merchant_location_list.json'
+METADATA_MERCHANT_DERIVED = 'metadata\merchant_derived_list.json'
 
 # TODO: convert from IRL dates to approximate Arelith dates
 DATE_ARELITH_EXAMPLE = "Day 12, Month 8 (Elasias (Highsun)) 176 AR. The time is currently 10:15"
@@ -57,23 +56,14 @@ def hash_str(input: str) -> int:
     return int(hashlib.sha1(input.encode("utf-8")).hexdigest(), 16) % (10 ** 8)
 
 ## Setup log metadata enrichers
-# Setup harcoded merchant location list
-try:
-    with open(os.path.join(os.getcwd(), METADATA_MERCHANT)) as json_file:
-        merchant_dict = json.load(json_file)
-
-        if DEBUG: print(json.dumps(merchant_dict, indent = 4, sort_keys=True) )
-except FileNotFoundError:
-    print(f"File {METADATA_MERCHANT} not found. No hardcoded merchant data loaded.", file=sys.stderr)
-
 # Setup generated merchant list
 try:
-    with open(os.path.join(os.getcwd(), METADATA_MERCHANT_LOCATION)) as json_file:
+    with open(os.path.join(os.getcwd(), METADATA_MERCHANT_DERIVED)) as json_file:
         merchant_location_dict = json.load(json_file)
     
         if DEBUG: print(json.dumps(merchant_location_dict, indent = 4, sort_keys=True) )
 except FileNotFoundError:
-    print(f"File {METADATA_MERCHANT_LOCATION} not found. No derived merchant list loaded.", file=sys.stderr)
+    print(f"File [{METADATA_MERCHANT_DERIVED}] not found. No derived merchant list loaded.", file=sys.stderr)
 
 # Setup file ignore list
 if os.path.exists(os.path.join(os.getcwd(), READ_FILES_FILE)):
@@ -213,17 +203,17 @@ read_file.close()
 # Read old files so we don't wipe out the old data
 price_list_old = []
 try:
-    with open(os.path.join(os.getcwd(), f"{OUTPUT_FILE}")) as json_file:
+    with open(os.path.join(os.getcwd(), f"{OUTPUT_PATH}/{OUTPUT_FILE}")) as json_file:
         price_list_old = json.load(json_file)
 except FileNotFoundError:
-    print(f"File {OUTPUT_FILE} not found. No previous prices loaded.", file=sys.stderr)
+    print(f"No previous [{OUTPUT_FILE}]. Initial creation.", file=sys.stderr)
 
 merchant_dict_old = []
 try:
-    with open(os.path.join(os.getcwd(), f"{METADATA_MERCHANT}")) as json_file:
+    with open(os.path.join(os.getcwd(), f"{METADATA_MERCHANT_DERIVED}")) as json_file:
         merchant_dict_old = json.load(json_file)
 except FileNotFoundError:
-    print(f"File {METADATA_MERCHANT} not found. No merchants loaded.", file=sys.stderr)
+    print(f"No previous [{METADATA_MERCHANT_DERIVED}]. Initial creation.", file=sys.stderr)
 
 # Combine the old dicts with the new
 if(len(price_list) <= 0): price_list = []
@@ -257,6 +247,6 @@ f = open(f"{OUTPUT_PATH}/prices_last_{RECENT_MONTHS}_months.json", "w")
 f.write(price_list_recent_json)
 f.close()
 
-f = open(f"{OUTPUT_PATH}/merchant_list.json", "w")
+f = open(f"{METADATA_MERCHANT_DERIVED}", "w")
 f.write(merchant_dict_json)
 f.close()
